@@ -1,0 +1,14 @@
+{
+  "name": "识陷 · 公考政治理论挖坑点训练",
+  "short_name": "识陷",
+  "description": "离线可用的公考政治理论挖坑点训练：9 类常见命题陷阱、原创解析、错题攻克与避坑手册。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f9f5",
+  "theme_color": "#f7f7f3",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
