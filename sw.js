@@ -1,46 +1,51 @@
-/* 识陷 · 离线缓存 Service Worker（在线访问一次后，断网也能继续练习） */
+/* 识陷 · 静态资源缓存。脚本与题库全部随站点发布，可断网继续学习。 */
 'use strict';
-const CACHE = 'shixian-v2';
+const CACHE = 'shixian-v3';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
-  './questions.js',
   './app.js',
   './manifest.webmanifest',
-  './icon.svg'
+  './icon.svg',
+  './data/questions.js',
+  './data/questions-extra.js',
+  './data/questions-mix.js',
+  './data/recite.js',
+  './data/traps.js',
+  './data/timeline.js'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()).catch(() => {})
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(cache => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
+self.addEventListener('activate', event => {
+  event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
   if (url.origin !== location.origin) return;
-  // 缓存优先，后台同步新版本（stale-while-revalidate）
-  e.respondWith(
-    caches.match(req, { ignoreSearch: false }).then(hit => {
-      const net = fetch(req).then(res => {
-        if (res && res.status === 200 && res.type === 'basic') {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(req, clone));
+  event.respondWith(
+    caches.match(request).then(cached => {
+      const update = fetch(request).then(response => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          caches.open(CACHE).then(cache => cache.put(request, response.clone()));
         }
-        return res;
-      }).catch(() => hit);
-      return hit || net;
+        return response;
+      }).catch(() => cached);
+      return cached || update;
     })
   );
 });
